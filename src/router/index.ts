@@ -11,6 +11,36 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/superadmin',
+    name: 'SuperAdmin',
+    component: () => import('../views/SuperAdminView.vue'),
+    meta: { requiresAuth: true, role: 'SUPER_ADMIN' }
+  },
+  {
+    path: '/admin',
+    name: 'Admin',
+    component: () => import('../views/AdminView.vue'),
+    meta: { requiresAuth: true, role: 'ADMIN' }
+  },
+  {
+    path: '/manager',
+    name: 'Manager',
+    component: () => import('../views/ManagerView.vue'),
+    meta: { requiresAuth: true, role: 'MANAGER' }
+  },
+  {
+    path: '/user',
+    name: 'User',
+    component: () => import('../views/UserView.vue'),
+    meta: { requiresAuth: true, role: 'USER' }
+  },
+  {
+    path: '/customer',
+    name: 'Customer',
+    component: () => import('../views/CustomerView.vue'),
+    meta: { requiresAuth: true, role: 'CUSTOMER' }
+  },
+  {
     path: '/login',
     name: 'Login',
     component: Login,
@@ -26,19 +56,55 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
   const isAuthenticated = authStore.isAuthenticated
+  const userRole = authStore.userRole
 
-  // Eğer sayfa auth gerektiriyorsa ve kullanıcı giriş yapmamışsa
+  // If route requires auth and user is not authenticated
   if (to.meta.requiresAuth && !isAuthenticated) {
     next('/login')
+    return
   }
-  // Eğer login sayfasına gidiyorsa ve zaten giriş yapmışsa
-  else if (to.meta.guest && isAuthenticated) {
-    next('/')
+
+  // If user is authenticated and trying to access login page
+  if (to.meta.guest && isAuthenticated) {
+    redirectToRoleDashboard(userRole, next)
+    return
   }
-  // Diğer durumlar
-  else {
-    next()
+
+  // If route has role requirement
+  if (to.meta.role && to.meta.role !== userRole) {
+    redirectToRoleDashboard(userRole, next)
+    return
   }
+
+  // If accessing root path, redirect to role-specific dashboard
+  if (to.path === '/' && isAuthenticated) {
+    redirectToRoleDashboard(userRole, next)
+    return
+  }
+
+  next()
 })
+
+function redirectToRoleDashboard(role: string | null, next: any) {
+  switch (role) {
+    case 'SUPER_ADMIN':
+      next('/superadmin')
+      break
+    case 'ADMIN':
+      next('/admin')
+      break
+    case 'MANAGER':
+      next('/manager')
+      break
+    case 'USER':
+      next('/user')
+      break
+    case 'CUSTOMER':
+      next('/customer')
+      break
+    default:
+      next('/login')
+  }
+}
 
 export default router 
