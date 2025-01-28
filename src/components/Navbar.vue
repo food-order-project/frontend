@@ -7,7 +7,10 @@
     <div class="navbar-menu">
       <router-link to="/" class="nav-link">Ana Sayfa</router-link>
       <div v-if="authStore.isAuthenticated" class="nav-right">
-        <span class="username">Sayın  {{ authStore.userName }}  Hoş geldiniz</span>
+        <span class="username">Sayın {{ authStore.userName }} Hoş geldiniz</span>
+        <button @click="themeStore.toggleTheme" class="theme-button">
+          {{ themeStore.isDark ? '☀️' : '🌙' }}
+        </button>
         <button @click="handleLogout" class="logout-button">Çıkış Yap</button>
       </div>
     </div>
@@ -18,20 +21,23 @@
 import { defineComponent } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { useThemeStore } from '../stores/theme'
 
 export default defineComponent({
   name: 'Navbar',
   setup() {
     const router = useRouter()
     const authStore = useAuthStore()
+    const themeStore = useThemeStore()
 
     const handleLogout = () => {
-      authStore.clearToken()
+      authStore.clearAuth()
       router.push('/login')
     }
 
     return {
       authStore,
+      themeStore,
       handleLogout
     }
   }
@@ -40,7 +46,7 @@ export default defineComponent({
 
 <style scoped>
 .navbar {
-  background-color: #333;
+  background-color: var(--navbar-bg);
   padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;
@@ -58,7 +64,7 @@ export default defineComponent({
 }
 
 .logo {
-  color: white;
+  color: var(--navbar-text);
   text-decoration: none;
   font-size: 1.5rem;
   font-weight: bold;
@@ -71,14 +77,14 @@ export default defineComponent({
 }
 
 .nav-link {
-  color: white;
+  color: var(--navbar-text);
   text-decoration: none;
   font-size: 1rem;
   transition: color 0.3s;
 }
 
 .nav-link:hover {
-  color: #4CAF50;
+  color: var(--btn-primary);
 }
 
 .nav-right {
@@ -88,12 +94,26 @@ export default defineComponent({
 }
 
 .username {
-  color: white;
+  color: var(--navbar-text);
   font-weight: 500;
 }
 
+.theme-button {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: background-color 0.3s;
+}
+
+.theme-button:hover {
+  background-color: var(--bg-secondary);
+}
+
 .logout-button {
-  background-color: #4CAF50;
+  background-color: var(--btn-primary);
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -103,6 +123,6 @@ export default defineComponent({
 }
 
 .logout-button:hover {
-  background-color: #45a049;
+  background-color: var(--btn-hover);
 }
 </style> 

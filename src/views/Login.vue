@@ -97,12 +97,12 @@ export default defineComponent({
 
 <style scoped>
 .login-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background-color: #b7b1b1;
-  margin: auto;
+  background-color: var(--panel-bg);
+  border-radius: 8px;
+  box-shadow: var(--card-shadow);
+  padding: 2rem;
+  max-width: 400px;
+  margin: 2rem auto;
 }
 
 .login-form {
@@ -128,41 +128,41 @@ h2 {
 label {
   display: block;
   margin-bottom: 0.5rem;
-  color: #666;
+  color: var(--text-primary);
 }
 
 input {
-  width: 80%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--input-border);
   border-radius: 4px;
-  font-size: 1rem;
-  
+  background-color: var(--input-bg);
+  color: var(--input-text);
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--btn-primary);
 }
 
 .login-button {
-  width: 50%;
-  padding: 0.75rem;
-  background-color: #4CAF50;
+  background-color: var(--btn-primary);
   color: white;
   border: none;
-  border-radius: 50px;
-  font-size: 1rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.1s;
-
+  width: 100%;
+  transition: background-color 0.3s;
 }
 
 .login-button:hover {
-  background-color: #45a049;
+  background-color: var(--btn-hover);
 }
 
 .error-message {
-  background-color: #ffebee;
-  color: #c62828;
-  padding: 10px;
-  border-radius: 4px;
-  margin-bottom: 1rem;
+  color: #dc3545;
+  margin-top: 1rem;
   text-align: center;
 }
 
