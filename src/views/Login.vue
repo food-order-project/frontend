@@ -1,36 +1,40 @@
 <template>
   <div class="login-container">
+    <div class="language-switcher-wrapper">
+      <LanguageSwitcher />
+    </div>
+
     <form @submit.prevent="handleLogin" class="login-form">
-      <h2>Giriş Yap</h2>
+      <h2>{{ $t("auth.login") }}</h2>
 
       <div v-if="error" class="error-message">
         {{ error }}
       </div>
 
       <div class="form-group">
-        <label for="email">E-posta</label>
+        <label for="email">{{ $t("auth.email") }}</label>
         <input
           type="email"
           id="email"
           v-model="email"
           required
-          placeholder="E-posta adresiniz"
+          :placeholder="$t('auth.emailPlaceholder')"
         />
       </div>
 
       <div class="form-group">
-        <label for="password">Şifre</label>
+        <label for="password">{{ $t("auth.password") }}</label>
         <input
           type="password"
           id="password"
           v-model="password"
           required
-          placeholder="Şifreniz"
+          :placeholder="$t('auth.passwordPlaceholder')"
         />
       </div>
 
       <button type="submit" class="login-button" :disabled="loading">
-        {{ loading ? 'Giriş yapılıyor...' : 'Giriş Yap' }}
+        {{ loading ? $t("auth.loggingIn") : $t("auth.login") }}
       </button>
     </form>
   </div>
@@ -41,12 +45,17 @@ import { defineComponent, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth";
 import { authService } from "../services/auth.service";
+import LanguageSwitcher from "../components/LanguageSwitcher.vue";
 
 export default defineComponent({
   name: "Login",
+  components: {
+    LanguageSwitcher,
+  },
   setup() {
     const router = useRouter();
     const authStore = useAuthStore();
+
     const email = ref("");
     const password = ref("");
     const error = ref("");
@@ -59,10 +68,8 @@ export default defineComponent({
       try {
         const response = await authService.login({
           email: email.value,
-          password: password.value
+          password: password.value,
         });
-
-        console.log('Login Response:', response); // Response'u kontrol edelim
 
         if (response.user) {
           authStore.setToken(response.access_token);
@@ -71,11 +78,11 @@ export default defineComponent({
             email: response.user.email,
             name: response.user.name,
             role: response.user.role,
-            roles: response.user.roles
+            roles: response.user.roles,
           });
           router.push("/");
         } else {
-          throw new Error('Kullanıcı bilgileri alınamadı');
+          throw new Error("User information could not be retrieved");
         }
       } catch (err: any) {
         error.value = err.message;
@@ -89,7 +96,7 @@ export default defineComponent({
       password,
       handleLogin,
       error,
-      loading
+      loading,
     };
   },
 });
@@ -97,12 +104,20 @@ export default defineComponent({
 
 <style scoped>
 .login-container {
+  position: relative;
   background-color: var(--panel-bg);
   border-radius: 8px;
   box-shadow: var(--card-shadow);
   padding: 2rem;
   max-width: 400px;
   margin: 2rem auto;
+}
+
+.language-switcher-wrapper {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1000;
 }
 
 .login-form {

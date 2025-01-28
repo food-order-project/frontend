@@ -5,43 +5,53 @@
     </div>
 
     <div class="navbar-menu">
-      <router-link to="/" class="nav-link">Ana Sayfa</router-link>
+      <router-link to="/" class="nav-link">{{ $t("common.home") }}</router-link>
       <div v-if="authStore.isAuthenticated" class="nav-right">
-        <span class="username">Sayın {{ authStore.userName }} Hoş geldiniz</span>
+        <span class="username"
+          >{{ $t("common.greeting", { name: authStore.userName }) }}
+        </span>
+        <LanguageSwitcher />
         <button @click="themeStore.toggleTheme" class="theme-button">
-          {{ themeStore.isDark ? '☀️' : '🌙' }}
+          {{ themeStore.isDark ? "☀️" : "🌙" }}
         </button>
-        <button @click="handleLogout" class="logout-button">Çıkış Yap</button>
+
+        <button @click="handleLogout" class="logout-button">
+          {{ $t("common.logout") }}
+        </button>
       </div>
     </div>
   </nav>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
-import { useThemeStore } from '../stores/theme'
+import { defineComponent } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "../stores/auth";
+import { useThemeStore } from "../stores/theme";
+import LanguageSwitcher from "./LanguageSwitcher.vue";
 
 export default defineComponent({
-  name: 'Navbar',
+  name: "Navbar",
+  components: {
+    LanguageSwitcher,
+  },
   setup() {
-    const router = useRouter()
-    const authStore = useAuthStore()
-    const themeStore = useThemeStore()
+    const router = useRouter();
+    const authStore = useAuthStore();
+    const themeStore = useThemeStore();
 
     const handleLogout = () => {
-      authStore.clearAuth()
-      router.push('/login')
-    }
+      authStore.clearAuth();
+      router.push("/login");
+    };
 
     return {
       authStore,
       themeStore,
-      handleLogout
-    }
-  }
-})
+      handleLogout,
+    };
+  },
+});
 </script>
 
 <style scoped>
@@ -125,4 +135,21 @@ export default defineComponent({
 .logout-button:hover {
   background-color: var(--btn-hover);
 }
-</style> 
+
+.user-menu-btn {
+  color: var(--navbar-text);
+}
+
+.user-menu-btn:hover {
+  background-color: var(--bg-secondary);
+}
+
+.user-info {
+  padding: 8px;
+  font-weight: 500;
+}
+
+.menu-logout {
+  color: rgb(var(--v-theme-error));
+}
+</style>
