@@ -56,8 +56,8 @@ export default defineComponent({
     const router = useRouter();
     const authStore = useAuthStore();
 
-    const email = ref("");
-    const password = ref("");
+    const email = ref("manager@example.com");
+    const password = ref("123456");
     const error = ref("");
     const loading = ref(false);
 
