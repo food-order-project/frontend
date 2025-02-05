@@ -17,6 +17,50 @@ export const useMealsStore = defineStore('meals', {
   }),
 
   actions: {
+    async fetchMeals() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const authStore = useAuthStore();
+        const response = await axios.get('http://localhost:3000/meals', {
+          headers: {
+            Authorization: `Bearer ${authStore.token}`
+          }
+        });
+        
+        this.meals = response.data;
+        return { success: true, data: response.data };
+      } catch (error: any) {
+        this.error = error.response?.data?.message || 'Error fetching meals';
+        return { success: false, error: this.error };
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async deleteMeal(id: string) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const authStore = useAuthStore();
+        const response = await axios.delete(`http://localhost:3000/meals/${id}`, {
+          headers: {
+            Authorization: `Bearer ${authStore.token}`
+          }
+        });
+        
+        if (response.status === 200) {
+          this.meals = [...this.meals.filter(meal => meal.id !== id)];
+          return { success: true };
+        }
+      } catch (error: any) {
+        this.error = error.response?.data?.message || 'Error deleting meal';
+        return { success: false, error: this.error };
+      } finally {
+        this.loading = false;
+      }
+    },
+
     async createMeal(mealData: Partial<Meal>) {
       this.loading = true;
       this.error = null;

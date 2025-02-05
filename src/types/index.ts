@@ -25,6 +25,9 @@ export interface Meal {
   isActive: boolean;
   calories: number;
   allergens: string[];
+  price?: number;
+  stock?: number;
+  sold?: number;
   createdAt?: Date;
   updatedAt?: Date;
 } 

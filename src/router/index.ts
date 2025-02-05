@@ -3,6 +3,7 @@ import Home from '../views/Home.vue'
 import Login from '../views/Login.vue'
 import { useAuthStore } from '../stores/auth'
 import ManagerMealRegister from '@/components/ManagerMealRegister.vue'
+import ManagerMealsList from '@/components/ManagerMealsList.vue'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -52,6 +53,12 @@ const routes: RouteRecordRaw[] = [
     name: 'ManagerMealRegister',
     component: ManagerMealRegister,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/manager/meals',
+    name: 'ManagerMealsList',
+    component: ManagerMealsList,
+    meta: { requiresAuth: true, role: 'MANAGER' }
   }
 ]
 

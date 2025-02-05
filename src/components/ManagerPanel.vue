@@ -11,11 +11,13 @@
             <v-icon>mdi-plus</v-icon>
             Add New Meal
           </router-link>
-          <button class="manager-btn">
+          <button class="manager-btn" @click="showMealsList = true">
             <v-icon>mdi-format-list-bulleted</v-icon>
             View All Meals
           </button>
         </div>
+
+        <ManagerMealsList v-if="showMealsList" />
       </div>
 
       <div class="panel">
@@ -32,13 +34,15 @@
         </div>
       </div>
     </div>
+    <ManagerMealsList />
   </div>
 </template>
 
-<script lang="ts">
-export default {
-  name: "ManagerPanel",
-};
+<script setup lang="ts">
+import { ref } from "vue";
+import ManagerMealsList from "./ManagerMealsList.vue";
+
+const showMealsList = ref(false);
 </script>
 
 <style scoped>
