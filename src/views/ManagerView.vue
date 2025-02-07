@@ -6,6 +6,7 @@
 </template>
 
 <script setup lang="ts">
+// import ManagerPanel from '../components/ManagerPanel.vue'
 import ManagerPanel from '../components/ManagerPanel.vue'
 </script>
 
