@@ -23,10 +23,10 @@
       <div class="panel">
         <h3>Orders</h3>
         <div class="action-buttons">
-          <button class="manager-btn">
+          <router-link to="/manager/menu-selection" class="manager-btn">
             <v-icon>mdi-clipboard-text</v-icon>
             Today's Orders
-          </button>
+          </router-link>
           <button class="manager-btn">
             <v-icon>mdi-history</v-icon>
             Order History

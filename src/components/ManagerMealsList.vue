@@ -113,18 +113,6 @@
                     </v-col>
 
                     <v-col cols="12" sm="6">
-                      <!-- <v-select
-                        v-model="editedItem.category"
-                        label="Category*"
-                        :items="[
-                          { text: 'Main Course', value: 'main_course' },
-                          { text: 'Soup', value: 'soup' },
-                          { text: 'Salad', value: 'salad' },
-                          { text: 'Dessert', value: 'dessert' },
-                          { text: 'Beverage', value: 'beverage' }
-                        ]"
-                        required
-                      ></v-select> -->
                       <v-select
                         v-model="editedItem.category"
                         label="Category*"
@@ -163,7 +151,7 @@
                     <v-col cols="12">
                       <v-text-field
                         v-model="editedItem.imageUrl"
-                        label="Image URL"
+                        label="Image URL*"
                         type="url"
                       ></v-text-field>
                     </v-col>
@@ -424,23 +412,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* Pagination stillerini düzeltme */
-:deep(.v-data-table-footer__pagination) {
-  background-color: white !important;
-}
-
-:deep(.v-data-table-footer) {
-  background-color: white !important;
-}
-
-:deep(.v-data-footer__pagination) {
-  background-color: white !important;
-}
-
-:deep(.v-data-footer) {
-  background-color: white !important;
-}
-
 .manager-panel {
   padding: 20px;
 }
