@@ -1,11 +1,24 @@
 <template>
   <div class="manager-panel">
     <div class="manager-header">
-      <h2>Foods</h2>
-      <div class="subtitle">{{ mealsStore.meals.length }} Menus</div>
+      <div class="header-left">
+        <h2>Foods</h2>
+        <div class="subtitle">{{ mealsStore.meals.length }} Menus</div>
+      </div>
+      <div class="view-toggle">
+        <v-btn-toggle v-model="viewMode" mandatory>
+          <v-btn value="grid">
+            <v-icon>mdi-grid</v-icon>
+          </v-btn>
+          <v-btn value="table">
+            <v-icon>mdi-table</v-icon>
+          </v-btn>
+        </v-btn-toggle>
+      </div>
     </div>
 
-    <div class="meals-grid">
+    <!-- Grid View -->
+    <div v-if="viewMode === 'grid'" class="meals-grid">
       <div v-for="meal in mealsStore.meals" :key="meal.id" class="meal-card">
         <div class="meal-image">
           <img :src="meal.imageUrl || '/default-meal.png'" :alt="meal.name">
@@ -56,6 +69,109 @@
       </div>
     </div>
 
+    <!-- Table View -->
+    <v-data-table
+      v-else
+      :headers="headers"
+      :items="mealsStore.meals"
+      :items-per-page="10"
+      class="elevation-1"
+    >
+      <template v-slot:top>
+        <v-toolbar flat>
+          <v-toolbar-title>Foods Management</v-toolbar-title>
+          <v-divider class="mx-4" inset vertical></v-divider>
+          <v-spacer></v-spacer>
+          <v-dialog v-model="dialog" max-width="500px">
+            <template v-slot:activator="{ props }">
+              <v-btn color="primary" v-bind="props" class="mb-2">
+                Add New Meals
+              </v-btn>
+            </template>
+            <v-card>
+              <v-card-title>
+                <span class="text-h5">{{ formTitle }}</span>
+              </v-card-title>
+
+              <v-card-text>
+                <v-container>
+                  <v-row>
+                    <v-col cols="12" sm="6">
+                      <v-text-field
+                        v-model="editedItem.name"
+                        label="Food name"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="6">
+                      <v-text-field
+                        v-model="editedItem.category"
+                        label="Category"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="6">
+                      <v-text-field
+                        v-model="editedItem.calories"
+                        label="Calories"
+                        type="number"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12">
+                      <v-textarea
+                        v-model="editedItem.description"
+                        label="Description"
+                      ></v-textarea>
+                    </v-col>
+                    <v-col cols="12">
+                      <v-text-field
+                        v-model="editedItem.imageUrl"
+                        label="Image URL"
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                </v-container>
+              </v-card-text>
+
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="blue-darken-1" variant="text" @click="closeDialog">
+                  Cancel
+                </v-btn>
+                <v-btn color="blue-darken-1" variant="text" @click="saveItem">
+                  Save
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+        </v-toolbar>
+      </template>
+      <template v-slot:item.imageUrl="{ item }">
+        <img 
+          :src="item.imageUrl || '/default-meal.png'" 
+          :alt="item.name"
+          class="table-thumbnail"
+        >
+      </template>
+      <template v-slot:item.actions="{ item }">
+        <v-btn
+          icon
+          small
+          color="primary"
+          @click="editMeal(item)"
+          class="mr-2"
+        >
+          <v-icon>mdi-pencil</v-icon>
+        </v-btn>
+        <v-btn
+          icon
+          small
+          color="error"
+          @click="deleteMeal(item)"
+        >
+          <v-icon>mdi-delete</v-icon>
+        </v-btn>
+      </template>
+    </v-data-table>
+
     <!-- Options Menu -->
     <v-menu
       v-model="showMenu"
@@ -82,7 +198,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed, nextTick } from 'vue';
 import { useMealsStore } from '../stores/meals';
 
 const mealsStore = useMealsStore();
@@ -91,12 +207,43 @@ const showMenu = ref(false);
 const menuX = ref(0);
 const menuY = ref(0);
 const selectedMeal = ref(null);
+const viewMode = ref('grid');
+const dialog = ref(false);
+const editedIndex = ref(-1);
+const editedItem = ref({
+  name: '',
+  category: '',
+  calories: 0,
+  description: '',
+  imageUrl: ''
+});
+
+const defaultItem = {
+  name: '',
+  category: '',
+  calories: 0,
+  description: '',
+  imageUrl: ''
+};
+
+const formTitle = computed(() => {
+  return editedIndex.value === -1 ? 'New Item' : 'Edit Item';
+});
 
 const snackbar = ref({
   show: false,
   text: '',
   color: 'success'
 });
+
+const headers = [
+  { title: 'Image', key: 'imageUrl', sortable: false, align: 'end' },
+  { title: 'Name', key: 'name', align: 'end' },
+  { title: 'Category', key: 'category', align: 'end' },
+  { title: 'Calories', key: 'calories', align: 'end' },
+  { title: 'Description', key: 'description', align: 'end' },
+  { title: 'Actions', key: 'actions', sortable: false, align: 'end' }
+];
 
 const showOptions = (meal: any, event?: MouseEvent) => {
   selectedMeal.value = meal;
@@ -116,8 +263,9 @@ const showMessage = (text: string, color: 'success' | 'error' = 'success') => {
 };
 
 const editMeal = (item: any) => {
-  // TODO: Implement edit functionality
-  console.log('Edit meal:', item);
+  editedIndex.value = mealsStore.meals.indexOf(item);
+  editedItem.value = Object.assign({}, item);
+  dialog.value = true;
   showMenu.value = false;
 };
 
@@ -139,6 +287,33 @@ const deleteMeal = async (item: any) => {
   showMenu.value = false;
 };
 
+const closeDialog = () => {
+  dialog.value = false;
+  nextTick(() => {
+    editedItem.value = { ...defaultItem };
+    editedIndex.value = -1;
+  });
+};
+
+const saveItem = async () => {
+  try {
+    if (editedIndex.value > -1) {
+      // Update existing item
+      // TODO: Implement update functionality
+      console.log('Update item:', editedItem.value);
+    } else {
+      // Create new item
+      // TODO: Implement create functionality
+      console.log('Create new item:', editedItem.value);
+    }
+    closeDialog();
+    await mealsStore.fetchMeals();
+    showMessage('Item saved successfully');
+  } catch (error) {
+    showMessage('Error saving item', 'error');
+  }
+};
+
 onMounted(async () => {
   try {
     await mealsStore.fetchMeals();
@@ -151,12 +326,36 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* Pagination stillerini düzeltme */
+:deep(.v-data-table-footer__pagination) {
+  background-color: white !important;
+}
+
+:deep(.v-data-table-footer) {
+  background-color: white !important;
+}
+
+:deep(.v-data-footer__pagination) {
+  background-color: white !important;
+}
+
+:deep(.v-data-footer) {
+  background-color: white !important;
+}
+
 .manager-panel {
   padding: 20px;
 }
 
 .manager-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 24px;
+}
+
+.header-left {
+  flex: 1;
 }
 
 .manager-header h2 {
@@ -245,5 +444,16 @@ onMounted(async () => {
 
 .action-btn {
   flex: 1;
+}
+
+.table-thumbnail {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.view-toggle {
+  margin-left: 16px;
 }
 </style>
