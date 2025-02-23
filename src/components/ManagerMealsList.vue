@@ -144,14 +144,14 @@
           </v-dialog>
         </v-toolbar>
       </template>
-      <template v-slot:item.imageUrl="{ item }">
+      <template #item.imageUrl="{ item }">
         <img 
           :src="item.imageUrl || '/default-meal.png'" 
           :alt="item.name"
           class="table-thumbnail"
         >
       </template>
-      <template v-slot:item.actions="{ item }">
+      <template #item.actions="{ item }">
         <v-btn
           icon
           small
@@ -299,16 +299,39 @@ const saveItem = async () => {
   try {
     if (editedIndex.value > -1) {
       // Update existing item
-      // TODO: Implement update functionality
-      console.log('Update item:', editedItem.value);
+      const mealId = mealsStore.meals[editedIndex.value]._id;
+      const result = await mealsStore.updateMeal(mealId, {
+        name: editedItem.value.name,
+        description: editedItem.value.description,
+        category: editedItem.value.category,
+        calories: editedItem.value.calories,
+        imageUrl: editedItem.value.imageUrl
+      });
+
+      if (result?.success) {
+        await mealsStore.fetchMeals();
+        showMessage('Meal updated successfully');
+      } else {
+        showMessage(result?.error || 'Error updating meal', 'error');
+      }
     } else {
       // Create new item
-      // TODO: Implement create functionality
-      console.log('Create new item:', editedItem.value);
+      const result = await mealsStore.createMeal({
+        name: editedItem.value.name,
+        description: editedItem.value.description,
+        category: editedItem.value.category,
+        calories: editedItem.value.calories,
+        imageUrl: editedItem.value.imageUrl
+      });
+
+      if (result?.success) {
+        await mealsStore.fetchMeals();
+        showMessage('Meal created successfully');
+      } else {
+        showMessage(result?.error || 'Error creating meal', 'error');
+      }
     }
     closeDialog();
-    await mealsStore.fetchMeals();
-    showMessage('Item saved successfully');
   } catch (error) {
     showMessage('Error saving item', 'error');
   }
