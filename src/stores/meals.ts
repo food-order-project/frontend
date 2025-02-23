@@ -100,8 +100,8 @@ export const useMealsStore = defineStore("meals", {
       this.loading = true;
       this.error = null;
       try {
+        console.log("mealData BURADA:", mealData);
         const authStore = useAuthStore();
-        console.log(mealData);
 
         const response = await axios.post(
           "http://localhost:3000/meals",

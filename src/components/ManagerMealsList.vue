@@ -21,7 +21,7 @@
     <div v-if="viewMode === 'grid'" class="meals-grid">
       <div v-for="meal in mealsStore.meals" :key="meal.id" class="meal-card">
         <div class="meal-image">
-          <img :src="meal.imageUrl || '/default-meal.png'" :alt="meal.name">
+          <img :src="meal.imageUrl || '/default-meal.png'" :alt="meal.name" />
           <v-btn
             icon
             small
@@ -31,15 +31,15 @@
             <v-icon>mdi-dots-vertical</v-icon>
           </v-btn>
         </div>
-        
+
         <div class="meal-content">
           <h3 class="meal-title">{{ meal.name }}</h3>
           <p class="meal-description">{{ meal.description }}</p>
-          
+
           <div class="meal-stats">
             <div class="stat">
               <span>Category:</span>
-              <span class="value">{{ meal.category || 'Uncategorized' }}</span>
+              <span class="value">{{ meal.category || "Uncategorized" }}</span>
             </div>
             <div class="stat">
               <span>Calories:</span>
@@ -96,36 +96,98 @@
               <v-card-text>
                 <v-container>
                   <v-row>
-                    <v-col cols="12" sm="6">
+                    <v-col cols="12">
                       <v-text-field
                         v-model="editedItem.name"
-                        label="Food name"
+                        label="Meal Name*"
+                        required
                       ></v-text-field>
                     </v-col>
+
+                    <v-col cols="12">
+                      <v-textarea
+                        v-model="editedItem.description"
+                        label="Description*"
+                        required
+                      ></v-textarea>
+                    </v-col>
+
+                    <v-col cols="12" sm="6">
+                      <!-- <v-select
+                        v-model="editedItem.category"
+                        label="Category*"
+                        :items="[
+                          { text: 'Main Course', value: 'main_course' },
+                          { text: 'Soup', value: 'soup' },
+                          { text: 'Salad', value: 'salad' },
+                          { text: 'Dessert', value: 'dessert' },
+                          { text: 'Beverage', value: 'beverage' }
+                        ]"
+                        required
+                      ></v-select> -->
+                      <v-select
+                        v-model="editedItem.category"
+                        label="Category*"
+                        :items="[
+                          { text: 'Main Course', value: 'main_course' },
+                          { text: 'Soup', value: 'soup' },
+                          { text: 'Salad', value: 'salad' },
+                          { text: 'Dessert', value: 'dessert' },
+                          { text: 'Beverage', value: 'beverage' },
+                        ]"
+                        item-title="text"
+                        item-value="value"
+                        required
+                      ></v-select>
+                    </v-col>
+
                     <v-col cols="12" sm="6">
                       <v-text-field
-                        v-model="editedItem.category"
-                        label="Category"
+                        v-model="editedItem.preparationTime"
+                        label="Preparation Time (minutes)"
+                        type="number"
+                        min="0"
                       ></v-text-field>
                     </v-col>
+
                     <v-col cols="12" sm="6">
                       <v-text-field
                         v-model="editedItem.calories"
                         label="Calories"
                         type="number"
+                        min="0"
+                        :rules="[v => !isNaN(Number(v)) && Number(v) >= 0 || 'Calories must be a valid positive number']"
                       ></v-text-field>
                     </v-col>
-                    <v-col cols="12">
-                      <v-textarea
-                        v-model="editedItem.description"
-                        label="Description"
-                      ></v-textarea>
-                    </v-col>
+
                     <v-col cols="12">
                       <v-text-field
                         v-model="editedItem.imageUrl"
                         label="Image URL"
+                        type="url"
                       ></v-text-field>
+                    </v-col>
+
+                    <v-col cols="12">
+                      <v-checkbox
+                        v-model="editedItem.dietaryType.vegetarian"
+                        label="Vegetarian"
+                      ></v-checkbox>
+                      <v-checkbox
+                        v-model="editedItem.dietaryType.vegan"
+                        label="Vegan"
+                      ></v-checkbox>
+                    </v-col>
+
+                    <v-col cols="12">
+                      <v-label>Allergens</v-label>
+                      <v-checkbox
+                        v-for="allergen in allergens"
+                        :key="allergen"
+                        v-model="editedItem.allergens"
+                        :label="allergen"
+                        :value="allergen"
+                      ></v-checkbox>
                     </v-col>
                   </v-row>
                 </v-container>
@@ -133,7 +195,11 @@
 
               <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn color="blue-darken-1" variant="text" @click="closeDialog">
+                <v-btn
+                  color="blue-darken-1"
+                  variant="text"
+                  @click="closeDialog"
+                >
                   Cancel
                 </v-btn>
                 <v-btn color="blue-darken-1" variant="text" @click="saveItem">
@@ -144,29 +210,18 @@
           </v-dialog>
         </v-toolbar>
       </template>
-      <template #item.imageUrl="{ item }">
-        <img 
-          :src="item.imageUrl || '/default-meal.png'" 
+      <template v-slot:[`item.imageUrl`]="{ item }">
+        <img
+          :src="item.imageUrl || '/default-meal.png'"
           :alt="item.name"
           class="table-thumbnail"
-        >
+        />
       </template>
-      <template #item.actions="{ item }">
-        <v-btn
-          icon
-          small
-          color="primary"
-          @click="editMeal(item)"
-          class="mr-2"
-        >
+      <template v-slot:[`item.actions`]="{ item }">
+        <v-btn icon small color="primary" @click="editMeal(item)" class="mr-2">
           <v-icon>mdi-pencil</v-icon>
         </v-btn>
-        <v-btn
-          icon
-          small
-          color="error"
-          @click="deleteMeal(item)"
-        >
+        <v-btn icon small color="error" @click="deleteMeal(item)">
           <v-icon>mdi-delete</v-icon>
         </v-btn>
       </template>
@@ -198,8 +253,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, nextTick } from 'vue';
-import { useMealsStore } from '../stores/meals';
+import { ref, onMounted, computed, nextTick } from "vue";
+import { useMealsStore } from "../stores/meals";
 
 const mealsStore = useMealsStore();
 const isLoading = ref(true);
@@ -207,42 +262,58 @@ const showMenu = ref(false);
 const menuX = ref(0);
 const menuY = ref(0);
 const selectedMeal = ref(null);
-const viewMode = ref('grid');
+const viewMode = ref("grid");
 const dialog = ref(false);
 const editedIndex = ref(-1);
 const editedItem = ref({
-  name: '',
-  category: '',
+  name: "",
+  description: "",
+  category: "",
+  dietaryType: {
+    vegetarian: false,
+    vegan: false,
+  },
+  imageUrl: "",
+  preparationTime: 0,
+  isActive: true,
   calories: 0,
-  description: '',
-  imageUrl: ''
+  allergens: [] as string[],
 });
 
 const defaultItem = {
-  name: '',
-  category: '',
+  name: "",
+  description: "",
+  category: "",
+  dietaryType: {
+    vegetarian: false,
+    vegan: false,
+  },
+  imageUrl: "",
+  preparationTime: 0,
+  isActive: true,
   calories: 0,
-  description: '',
-  imageUrl: ''
+  allergens: [],
 };
 
+const allergens = ["milk", "nuts", "eggs", "gluten", "fish"];
+
 const formTitle = computed(() => {
-  return editedIndex.value === -1 ? 'New Item' : 'Edit Item';
+  return editedIndex.value === -1 ? "New Item" : "Edit Item";
 });
 
 const snackbar = ref({
   show: false,
-  text: '',
-  color: 'success'
+  text: "",
+  color: "success",
 });
 
 const headers = [
-  { title: 'Image', key: 'imageUrl', sortable: false, align: 'end' },
-  { title: 'Name', key: 'name', align: 'end' },
-  { title: 'Category', key: 'category', align: 'end' },
-  { title: 'Calories', key: 'calories', align: 'end' },
-  { title: 'Description', key: 'description', align: 'end' },
-  { title: 'Actions', key: 'actions', sortable: false, align: 'end' }
+  { title: "Image", key: "imageUrl", sortable: false, align: "center" as const },
+  { title: "Name", key: "name", align: "start" as const },
+  { title: "Category", key: "category", align: "start" as const },
+  { title: "Calories", key: "calories", align: "start" as const },
+  { title: "Description", key: "description", align: "start" as const },
+  { title: "Actions", key: "actions", sortable: false, align: "center" as const },
 ];
 
 const showOptions = (meal: any, event?: MouseEvent) => {
@@ -254,11 +325,11 @@ const showOptions = (meal: any, event?: MouseEvent) => {
   showMenu.value = true;
 };
 
-const showMessage = (text: string, color: 'success' | 'error' = 'success') => {
+const showMessage = (text: string, color: "success" | "error" = "success") => {
   snackbar.value = {
     show: true,
     text,
-    color
+    color,
   };
 };
 
@@ -270,18 +341,17 @@ const editMeal = (item: any) => {
 };
 
 const deleteMeal = async (item: any) => {
-  if (confirm('Are you sure you want to delete this meal?')) {
+  if (confirm("Are you sure you want to delete this meal?")) {
     try {
-      console.log('delete meal item.id :', item._id);
-      const result = await mealsStore.deleteMeal(item._id);
+      const result = await mealsStore.deleteMeal(item.id);
       if (result?.success) {
         await mealsStore.fetchMeals();
-        showMessage('Meal deleted successfully');
+        showMessage("Meal deleted successfully");
       } else {
-        showMessage(result?.error || 'Error deleting meal', 'error');
+        showMessage(result?.error || "Error deleting meal", "error");
       }
     } catch (error) {
-      showMessage('Error deleting meal', 'error');
+      showMessage("Error deleting meal", "error");
     }
   }
   showMenu.value = false;
@@ -297,43 +367,48 @@ const closeDialog = () => {
 
 const saveItem = async () => {
   try {
+    const calories = Number(editedItem.value.calories);
+    if (isNaN(calories) || calories < 0) {
+      showMessage("Calories must be a valid positive number", "error");
+      return;
+    }
+
+    const mealData = {
+      name: editedItem.value.name,
+      description: editedItem.value.description,
+      category: editedItem.value.category,
+      dietaryType: editedItem.value.dietaryType,
+      imageUrl: editedItem.value.imageUrl,
+      preparationTime: editedItem.value.preparationTime,
+      calories: calories,
+      allergens: editedItem.value.allergens,
+      isActive: editedItem.value.isActive,
+    };
+
     if (editedIndex.value > -1) {
-      // Update existing item
       const mealId = mealsStore.meals[editedIndex.value]._id;
-      const result = await mealsStore.updateMeal(mealId, {
-        name: editedItem.value.name,
-        description: editedItem.value.description,
-        category: editedItem.value.category,
-        calories: editedItem.value.calories,
-        imageUrl: editedItem.value.imageUrl
-      });
+      const result = await mealsStore.updateMeal(mealId, mealData);
 
       if (result?.success) {
         await mealsStore.fetchMeals();
-        showMessage('Meal updated successfully');
+        showMessage("Meal updated successfully");
       } else {
-        showMessage(result?.error || 'Error updating meal', 'error');
+        showMessage(result?.error || "Error updating meal", "error");
       }
     } else {
-      // Create new item
-      const result = await mealsStore.createMeal({
-        name: editedItem.value.name,
-        description: editedItem.value.description,
-        category: editedItem.value.category,
-        calories: editedItem.value.calories,
-        imageUrl: editedItem.value.imageUrl
-      });
+      console.log("mealData BURADA:", mealData);
+      const result = await mealsStore.createMeal(mealData);
 
       if (result?.success) {
         await mealsStore.fetchMeals();
-        showMessage('Meal created successfully');
+        showMessage("Meal created successfully");
       } else {
-        showMessage(result?.error || 'Error creating meal', 'error');
+        showMessage(result?.error || "Error creating meal", "error");
       }
     }
     closeDialog();
   } catch (error) {
-    showMessage('Error saving item', 'error');
+    showMessage("Error saving item", "error");
   }
 };
 
@@ -341,7 +416,7 @@ onMounted(async () => {
   try {
     await mealsStore.fetchMeals();
   } catch (error) {
-    showMessage('Error loading meals', 'error');
+    showMessage("Error loading meals", "error");
   } finally {
     isLoading.value = false;
   }
@@ -402,7 +477,7 @@ onMounted(async () => {
   background: white;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   position: relative;
 }
 
@@ -421,7 +496,7 @@ onMounted(async () => {
   position: absolute;
   top: 8px;
   right: 8px;
-  background: rgba(255,255,255,0.9) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
 }
 
 .meal-content {
