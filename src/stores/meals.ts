@@ -7,6 +7,9 @@ interface MealState {
   meals: Meal[];
   loading: boolean;
   error: string | null;
+  allergens: string[];
+  dietaryTypes: string[];
+  mealCategories: any[];
 }
 
 export const useMealsStore = defineStore("meals", {
@@ -14,6 +17,9 @@ export const useMealsStore = defineStore("meals", {
     meals: [],
     loading: false,
     error: null,
+    allergens: [],
+    dietaryTypes: [],
+    mealCategories: [],
   }),
 
   actions: {
@@ -124,6 +130,31 @@ export const useMealsStore = defineStore("meals", {
         return { success: false, error: this.error };
       } finally {
         this.loading = false;
+      }
+    },
+
+    async fetchConfig() {
+      try {
+        const resAllergens = await axios.get(
+          "http://localhost:3000/config/allergens"
+        );
+        const resDietaryTypes = await axios.get(
+          "http://localhost:3000/config/dietary-types"
+        );
+        const resMealCategory = await axios.get(
+          "http://localhost:3000/config/meal-categories"
+        );
+
+        console.log(resAllergens);
+        console.log(resDietaryTypes);
+        console.log(resMealCategory);
+
+        this.allergens = resAllergens.data;
+        this.dietaryTypes = resDietaryTypes.data;
+        this.mealCategories = resMealCategory.data;
+      } catch (error) {
+        console.error("Error fetching config:", error);
+        throw error;
       }
     },
   },

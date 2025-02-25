@@ -116,13 +116,7 @@
                       <v-select
                         v-model="editedItem.category"
                         label="Category*"
-                        :items="[
-                          { text: 'Main Course', value: 'main_course' },
-                          { text: 'Soup', value: 'soup' },
-                          { text: 'Salad', value: 'salad' },
-                          { text: 'Dessert', value: 'dessert' },
-                          { text: 'Beverage', value: 'beverage' },
-                        ]"
+                        :items="categories"
                         item-title="text"
                         item-value="value"
                         required
@@ -144,7 +138,11 @@
                         label="Calories"
                         type="number"
                         min="0"
-                        :rules="[v => !isNaN(Number(v)) && Number(v) >= 0 || 'Calories must be a valid positive number']"
+                        :rules="[
+                          (v) =>
+                            (!isNaN(Number(v)) && Number(v) >= 0) ||
+                            'Calories must be a valid positive number',
+                        ]"
                       ></v-text-field>
                     </v-col>
 
@@ -157,13 +155,12 @@
                     </v-col>
 
                     <v-col cols="12">
+                      <v-label>Dietary Types</v-label>
                       <v-checkbox
-                        v-model="editedItem.dietaryType.vegetarian"
-                        label="Vegetarian"
-                      ></v-checkbox>
-                      <v-checkbox
-                        v-model="editedItem.dietaryType.vegan"
-                        label="Vegan"
+                        v-for="type in dietaryTypes"
+                        :key="type"
+                        v-model="editedItem.dietaryType[type.toLowerCase()]"
+                        :label="type"
                       ></v-checkbox>
                     </v-col>
 
@@ -283,7 +280,9 @@ const defaultItem = {
   allergens: [],
 };
 
-const allergens = ["milk", "nuts", "eggs", "gluten", "fish"];
+const allergens = computed(() => mealsStore.allergens || []);
+const categories = computed(() => mealsStore.mealCategories || []);
+const dietaryTypes = computed(() => mealsStore.dietaryTypes || []);
 
 const formTitle = computed(() => {
   return editedIndex.value === -1 ? "New Item" : "Edit Item";
@@ -296,12 +295,22 @@ const snackbar = ref({
 });
 
 const headers = [
-  { title: "Image", key: "imageUrl", sortable: false, align: "center" as const },
+  {
+    title: "Image",
+    key: "imageUrl",
+    sortable: false,
+    align: "center" as const,
+  },
   { title: "Name", key: "name", align: "start" as const },
   { title: "Category", key: "category", align: "start" as const },
   { title: "Calories", key: "calories", align: "start" as const },
   { title: "Description", key: "description", align: "start" as const },
-  { title: "Actions", key: "actions", sortable: false, align: "center" as const },
+  {
+    title: "Actions",
+    key: "actions",
+    sortable: false,
+    align: "center" as const,
+  },
 ];
 
 const showOptions = (meal: any, event?: MouseEvent) => {
@@ -384,7 +393,6 @@ const saveItem = async () => {
         showMessage(result?.error || "Error updating meal", "error");
       }
     } else {
-      console.log("mealData BURADA:", mealData);
       const result = await mealsStore.createMeal(mealData);
 
       if (result?.success) {
@@ -403,6 +411,7 @@ const saveItem = async () => {
 onMounted(async () => {
   try {
     await mealsStore.fetchMeals();
+    await mealsStore.fetchConfig();
   } catch (error) {
     showMessage("Error loading meals", "error");
   } finally {
