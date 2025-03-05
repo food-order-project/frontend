@@ -14,6 +14,7 @@ interface LoginResponse {
     email: string;
     name: string;
     role: string;
+    roleName: string;
     roles: string[];
   };
 }

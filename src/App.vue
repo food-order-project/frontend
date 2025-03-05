@@ -12,7 +12,6 @@ import { onMounted } from "vue";
 import Navbar from "./components/Navbar.vue";
 import { useThemeStore } from "./stores/theme";
 import { useAuthStore } from "./stores/auth";
-import { authService } from "./services/auth.service";
 
 const themeStore = useThemeStore();
 const authStore = useAuthStore();
@@ -20,37 +19,11 @@ const authStore = useAuthStore();
 onMounted(async () => {
   themeStore.initTheme();
 
-  // Initialize auth from localStorage
-  authStore.initializeAuth();
-
-  // If we have a token, validate it with the server
-  if (authStore.token) {
-    try {
-      const response = await authService.me(authStore.token);
-
-      // Update auth store with fresh data from server
-      // This will also update localStorage
-      authStore.setToken(response.access_token);
-      authStore.setUser(response.user);
-
-      console.log("Token validated successfully");
-    } catch (error: any) {
-      // Don't clear auth on error, just log it
-      // This way, if the server is temporarily unavailable, the user stays logged in
-      console.error("Token validation failed:", error);
-
-      // Only clear auth if the error is specifically about an invalid token
-      // This prevents clearing auth data for network errors or server issues
-      if (
-        error.message &&
-        (error.message.includes("unauthorized") ||
-          error.message.includes("invalid token") ||
-          error.message.includes("expired"))
-      ) {
-        console.log("Clearing auth due to invalid token");
-        authStore.clearAuth();
-      }
-    }
+  try {
+    await authStore.initializeAuth();
+    console.log("Authentication initialized in App.vue");
+  } catch (error) {
+    console.error("Error initializing authentication:", error);
   }
 });
 </script>

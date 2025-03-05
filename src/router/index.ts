@@ -107,7 +107,7 @@ router.beforeEach((to, from, next) => {
   }
 
   // If route has role requirement
-  if (to.meta.role && to.meta.role !== userRole) {
+  if (to.meta.roleName && to.meta.roleName !== userRole) {
     console.log("Redirecting to appropriate dashboard - Role mismatch");
     redirectToRoleDashboard(userRole, next);
     return;
