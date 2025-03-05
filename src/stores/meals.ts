@@ -76,6 +76,8 @@ export const useMealsStore = defineStore("meals", {
       console.log("updateData BURADA:", id, updateData);
       try {
         const authStore = useAuthStore();
+        console.log(authStore.token);
+        
         const response = await axios.patch(
           `http://localhost:3000/meals/${id}`,
           updateData,
@@ -85,6 +87,8 @@ export const useMealsStore = defineStore("meals", {
             },
           }
         );
+
+        console.log("res: ", response);
 
         if (response.status === 200) {
           // Update the meal in the local state
@@ -119,8 +123,6 @@ export const useMealsStore = defineStore("meals", {
           }
         );
 
-        console.log("store meals res :", response);
-
         if (response.status === 201) {
           this.meals.push(response.data);
           return { success: true, data: response.data };
@@ -144,10 +146,6 @@ export const useMealsStore = defineStore("meals", {
         const resMealCategory = await axios.get(
           "http://localhost:3000/config/meal-categories"
         );
-
-        console.log(resAllergens);
-        console.log(resDietaryTypes);
-        console.log(resMealCategory);
 
         this.allergens = resAllergens.data;
         this.dietaryTypes = resDietaryTypes.data;

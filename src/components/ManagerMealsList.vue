@@ -157,10 +157,11 @@
                     <v-col cols="12">
                       <v-label>Dietary Types</v-label>
                       <v-checkbox
-                        v-for="type in dietaryTypes"
-                        :key="type"
-                        v-model="editedItem.dietaryType[type.toLowerCase()]"
-                        :label="type"
+                        v-for="dietaryType in dietaryTypes"
+                        :key="dietaryType"
+                        v-model="editedItem.dietaryType"
+                        :label="dietaryType"
+                        :value="dietaryType"
                       ></v-checkbox>
                     </v-col>
 
@@ -254,10 +255,7 @@ const editedItem = ref({
   name: "",
   description: "",
   category: "",
-  dietaryType: {
-    vegetarian: false,
-    vegan: false,
-  },
+  dietaryType: [] as string[],
   imageUrl: "",
   preparationTime: 0,
   isActive: true,
@@ -269,10 +267,7 @@ const defaultItem = {
   name: "",
   description: "",
   category: "",
-  dietaryType: {
-    vegetarian: false,
-    vegan: false,
-  },
+  dietaryType: [],
   imageUrl: "",
   preparationTime: 0,
   isActive: true,
@@ -373,17 +368,20 @@ const saveItem = async () => {
     const mealData = {
       name: editedItem.value.name,
       description: editedItem.value.description,
-      category: editedItem.value.category,
+      category: editedItem.value.category.toLowerCase(),
       dietaryType: editedItem.value.dietaryType,
       imageUrl: editedItem.value.imageUrl,
       preparationTime: editedItem.value.preparationTime,
       calories: calories,
-      allergens: editedItem.value.allergens,
+      allergens: editedItem.value.allergens.map((allergen) =>
+        allergen.toLowerCase()
+      ),
       isActive: editedItem.value.isActive,
     };
 
     if (editedIndex.value > -1) {
-      const mealId = mealsStore.meals[editedIndex.value]._id;
+      const mealId = mealsStore.meals[editedIndex.value].id;
+      if (!mealId) return;
       const result = await mealsStore.updateMeal(mealId, mealData);
 
       if (result?.success) {
