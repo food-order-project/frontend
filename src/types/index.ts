@@ -1,14 +1,14 @@
 // Burada genel tip tanımlamalarını yapacağız
 export interface User {
-  id: number
-  username: string
-  email: string
+  id: number;
+  username: string;
+  email: string;
 }
 
 export interface ApiResponse<T> {
-  data: T
-  message: string
-  status: number
+  data: T;
+  message: string;
+  status: number;
 }
 
 export interface Meal {
@@ -16,10 +16,7 @@ export interface Meal {
   name: string;
   description: string;
   category: string;
-  dietaryType: {
-    vegetarian: boolean;
-    vegan: boolean;
-  };
+  dietaryType: string[];
   imageUrl?: string;
   preparationTime?: number;
   isActive: boolean;
@@ -30,4 +27,4 @@ export interface Meal {
   sold?: number;
   createdAt?: Date;
   updatedAt?: Date;
-} 
+}

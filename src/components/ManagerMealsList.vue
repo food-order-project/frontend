@@ -1,14 +1,27 @@
 <template>
   <div class="manager-panel">
     <div class="manager-header">
-      <h2>Foods</h2>
-      <div class="subtitle">{{ mealsStore.meals.length }} Menus</div>
+      <div class="header-left">
+        <h2>Foods</h2>
+        <div class="subtitle">{{ mealsStore.meals.length }} Menus</div>
+      </div>
+      <div class="view-toggle">
+        <v-btn-toggle v-model="viewMode" mandatory>
+          <v-btn value="grid">
+            <v-icon>mdi-grid</v-icon>
+          </v-btn>
+          <v-btn value="table">
+            <v-icon>mdi-table</v-icon>
+          </v-btn>
+        </v-btn-toggle>
+      </div>
     </div>
 
-    <div class="meals-grid">
+    <!-- Grid View -->
+    <div v-if="viewMode === 'grid'" class="meals-grid">
       <div v-for="meal in mealsStore.meals" :key="meal.id" class="meal-card">
         <div class="meal-image">
-          <img :src="meal.imageUrl || '/default-meal.png'" :alt="meal.name">
+          <img :src="meal.imageUrl || '/default-meal.png'" :alt="meal.name" />
           <v-btn
             icon
             small
@@ -18,15 +31,15 @@
             <v-icon>mdi-dots-vertical</v-icon>
           </v-btn>
         </div>
-        
+
         <div class="meal-content">
           <h3 class="meal-title">{{ meal.name }}</h3>
           <p class="meal-description">{{ meal.description }}</p>
-          
+
           <div class="meal-stats">
             <div class="stat">
               <span>Category:</span>
-              <span class="value">{{ meal.category || 'Uncategorized' }}</span>
+              <span class="value">{{ meal.category || "Uncategorized" }}</span>
             </div>
             <div class="stat">
               <span>Calories:</span>
@@ -56,6 +69,150 @@
       </div>
     </div>
 
+    <!-- Table View -->
+    <v-data-table
+      v-else
+      :headers="headers"
+      :items="mealsStore.meals"
+      :items-per-page="10"
+      class="elevation-1"
+    >
+      <template v-slot:top>
+        <v-toolbar flat>
+          <v-toolbar-title>Foods Management</v-toolbar-title>
+          <v-divider class="mx-4" inset vertical></v-divider>
+          <v-spacer></v-spacer>
+          <v-dialog v-model="dialog" max-width="500px">
+            <template v-slot:activator="{ props }">
+              <v-btn color="primary" v-bind="props" class="mb-2">
+                Add New Meals
+              </v-btn>
+            </template>
+            <v-card>
+              <v-card-title>
+                <span class="text-h5">{{ formTitle }}</span>
+              </v-card-title>
+
+              <v-card-text>
+                <v-container>
+                  <v-row>
+                    <v-col cols="12">
+                      <v-text-field
+                        v-model="editedItem.name"
+                        label="Meal Name*"
+                        required
+                      ></v-text-field>
+                    </v-col>
+
+                    <v-col cols="12">
+                      <v-textarea
+                        v-model="editedItem.description"
+                        label="Description*"
+                        required
+                      ></v-textarea>
+                    </v-col>
+
+                    <v-col cols="12" sm="6">
+                      <v-select
+                        v-model="editedItem.category"
+                        label="Category*"
+                        :items="categories"
+                        item-title="text"
+                        item-value="value"
+                        required
+                      ></v-select>
+                    </v-col>
+
+                    <v-col cols="12" sm="6">
+                      <v-text-field
+                        v-model="editedItem.preparationTime"
+                        label="Preparation Time (minutes)"
+                        type="number"
+                        min="0"
+                      ></v-text-field>
+                    </v-col>
+
+                    <v-col cols="12" sm="6">
+                      <v-text-field
+                        v-model="editedItem.calories"
+                        label="Calories"
+                        type="number"
+                        min="0"
+                        :rules="[
+                          (v) =>
+                            (!isNaN(Number(v)) && Number(v) >= 0) ||
+                            'Calories must be a valid positive number',
+                        ]"
+                      ></v-text-field>
+                    </v-col>
+
+                    <v-col cols="12">
+                      <v-text-field
+                        v-model="editedItem.imageUrl"
+                        label="Image URL*"
+                        type="url"
+                      ></v-text-field>
+                    </v-col>
+
+                    <v-col cols="12">
+                      <v-label>Dietary Types</v-label>
+                      <v-checkbox
+                        v-for="dietaryType in dietaryTypes"
+                        :key="dietaryType"
+                        v-model="editedItem.dietaryType"
+                        :label="dietaryType"
+                        :value="dietaryType"
+                      ></v-checkbox>
+                    </v-col>
+
+                    <v-col cols="12">
+                      <v-label>Allergens</v-label>
+                      <v-checkbox
+                        v-for="allergen in allergens"
+                        :key="allergen"
+                        v-model="editedItem.allergens"
+                        :label="allergen"
+                        :value="allergen"
+                      ></v-checkbox>
+                    </v-col>
+                  </v-row>
+                </v-container>
+              </v-card-text>
+
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn
+                  color="blue-darken-1"
+                  variant="text"
+                  @click="closeDialog"
+                >
+                  Cancel
+                </v-btn>
+                <v-btn color="blue-darken-1" variant="text" @click="saveItem">
+                  Save
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+        </v-toolbar>
+      </template>
+      <template v-slot:[`item.imageUrl`]="{ item }">
+        <img
+          :src="item.imageUrl || '/default-meal.png'"
+          :alt="item.name"
+          class="table-thumbnail"
+        />
+      </template>
+      <template v-slot:[`item.actions`]="{ item }">
+        <v-btn icon small color="primary" @click="editMeal(item)" class="mr-2">
+          <v-icon>mdi-pencil</v-icon>
+        </v-btn>
+        <v-btn icon small color="error" @click="deleteMeal(item)">
+          <v-icon>mdi-delete</v-icon>
+        </v-btn>
+      </template>
+    </v-data-table>
+
     <!-- Options Menu -->
     <v-menu
       v-model="showMenu"
@@ -82,8 +239,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useMealsStore } from '../stores/meals';
+import { ref, onMounted, computed, nextTick } from "vue";
+import { useMealsStore } from "../stores/meals";
 
 const mealsStore = useMealsStore();
 const isLoading = ref(true);
@@ -91,12 +248,65 @@ const showMenu = ref(false);
 const menuX = ref(0);
 const menuY = ref(0);
 const selectedMeal = ref(null);
+const viewMode = ref("grid");
+const dialog = ref(false);
+const editedIndex = ref(-1);
+const editedItem = ref({
+  name: "",
+  description: "",
+  category: "",
+  dietaryType: [] as string[],
+  imageUrl: "",
+  preparationTime: 0,
+  isActive: true,
+  calories: 0,
+  allergens: [] as string[],
+});
+
+const defaultItem = {
+  name: "",
+  description: "",
+  category: "",
+  dietaryType: [],
+  imageUrl: "",
+  preparationTime: 0,
+  isActive: true,
+  calories: 0,
+  allergens: [],
+};
+
+const allergens = computed(() => mealsStore.allergens || []);
+const categories = computed(() => mealsStore.mealCategories || []);
+const dietaryTypes = computed(() => mealsStore.dietaryTypes || []);
+
+const formTitle = computed(() => {
+  return editedIndex.value === -1 ? "New Item" : "Edit Item";
+});
 
 const snackbar = ref({
   show: false,
-  text: '',
-  color: 'success'
+  text: "",
+  color: "success",
 });
+
+const headers = [
+  {
+    title: "Image",
+    key: "imageUrl",
+    sortable: false,
+    align: "center" as const,
+  },
+  { title: "Name", key: "name", align: "start" as const },
+  { title: "Category", key: "category", align: "start" as const },
+  { title: "Calories", key: "calories", align: "start" as const },
+  { title: "Description", key: "description", align: "start" as const },
+  {
+    title: "Actions",
+    key: "actions",
+    sortable: false,
+    align: "center" as const,
+  },
+];
 
 const showOptions = (meal: any, event?: MouseEvent) => {
   selectedMeal.value = meal;
@@ -107,43 +317,101 @@ const showOptions = (meal: any, event?: MouseEvent) => {
   showMenu.value = true;
 };
 
-const showMessage = (text: string, color: 'success' | 'error' = 'success') => {
+const showMessage = (text: string, color: "success" | "error" = "success") => {
   snackbar.value = {
     show: true,
     text,
-    color
+    color,
   };
 };
 
 const editMeal = (item: any) => {
-  // TODO: Implement edit functionality
-  console.log('Edit meal:', item);
+  editedIndex.value = mealsStore.meals.indexOf(item);
+  editedItem.value = Object.assign({}, item);
+  dialog.value = true;
   showMenu.value = false;
 };
 
 const deleteMeal = async (item: any) => {
-  if (confirm('Are you sure you want to delete this meal?')) {
+  if (confirm("Are you sure you want to delete this meal?")) {
     try {
-      console.log('delete meal item.id :', item._id);
-      const result = await mealsStore.deleteMeal(item._id);
+      const result = await mealsStore.deleteMeal(item.id);
       if (result?.success) {
         await mealsStore.fetchMeals();
-        showMessage('Meal deleted successfully');
+        showMessage("Meal deleted successfully");
       } else {
-        showMessage(result?.error || 'Error deleting meal', 'error');
+        showMessage(result?.error || "Error deleting meal", "error");
       }
     } catch (error) {
-      showMessage('Error deleting meal', 'error');
+      showMessage("Error deleting meal", "error");
     }
   }
   showMenu.value = false;
 };
 
+const closeDialog = () => {
+  dialog.value = false;
+  nextTick(() => {
+    editedItem.value = { ...defaultItem };
+    editedIndex.value = -1;
+  });
+};
+
+const saveItem = async () => {
+  try {
+    const calories = Number(editedItem.value.calories);
+    if (isNaN(calories) || calories < 0) {
+      showMessage("Calories must be a valid positive number", "error");
+      return;
+    }
+
+    const mealData = {
+      name: editedItem.value.name,
+      description: editedItem.value.description,
+      category: editedItem.value.category.toLowerCase(),
+      dietaryType: editedItem.value.dietaryType,
+      imageUrl: editedItem.value.imageUrl,
+      preparationTime: editedItem.value.preparationTime,
+      calories: calories,
+      allergens: editedItem.value.allergens.map((allergen) =>
+        allergen.toLowerCase()
+      ),
+      isActive: editedItem.value.isActive,
+    };
+
+    if (editedIndex.value > -1) {
+      const mealId = mealsStore.meals[editedIndex.value].id;
+      if (!mealId) return;
+      const result = await mealsStore.updateMeal(mealId, mealData);
+
+      if (result?.success) {
+        await mealsStore.fetchMeals();
+        showMessage("Meal updated successfully");
+      } else {
+        showMessage(result?.error || "Error updating meal", "error");
+      }
+    } else {
+      const result = await mealsStore.createMeal(mealData);
+
+      if (result?.success) {
+        await mealsStore.fetchMeals();
+        showMessage("Meal created successfully");
+      } else {
+        showMessage(result?.error || "Error creating meal", "error");
+      }
+    }
+    closeDialog();
+  } catch (error) {
+    showMessage("Error saving item", "error");
+  }
+};
+
 onMounted(async () => {
   try {
     await mealsStore.fetchMeals();
+    await mealsStore.fetchConfig();
   } catch (error) {
-    showMessage('Error loading meals', 'error');
+    showMessage("Error loading meals", "error");
   } finally {
     isLoading.value = false;
   }
@@ -156,7 +424,14 @@ onMounted(async () => {
 }
 
 .manager-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 24px;
+}
+
+.header-left {
+  flex: 1;
 }
 
 .manager-header h2 {
@@ -180,7 +455,7 @@ onMounted(async () => {
   background: white;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   position: relative;
 }
 
@@ -199,7 +474,7 @@ onMounted(async () => {
   position: absolute;
   top: 8px;
   right: 8px;
-  background: rgba(255,255,255,0.9) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
 }
 
 .meal-content {
@@ -245,5 +520,16 @@ onMounted(async () => {
 
 .action-btn {
   flex: 1;
+}
+
+.table-thumbnail {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.view-toggle {
+  margin-left: 16px;
 }
 </style>

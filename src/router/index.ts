@@ -1,124 +1,147 @@
-import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
-import Home from '../views/Home.vue'
-import Login from '../views/Login.vue'
-import { useAuthStore } from '../stores/auth'
-import ManagerMealRegister from '@/components/ManagerMealRegister.vue'
-import ManagerMealsList from '@/components/ManagerMealsList.vue'
+import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
+import Home from "../views/Home.vue";
+import Login from "../views/Login.vue";
+import { useAuthStore } from "../stores/auth";
+import ManagerMealRegister from "@/components/ManagerMealRegister.vue";
+import ManagerMealsList from "@/components/ManagerMealsList.vue";
+import ManagerMenuSelection from "@/components/ManagerMenuSelection.vue";
 
 const routes: RouteRecordRaw[] = [
   {
-    path: '/',
-    name: 'Home',
+    path: "/",
+    name: "Home",
     component: Home,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
   {
-    path: '/superadmin',
-    name: 'SuperAdmin',
-    component: () => import('../views/SuperAdminView.vue'),
-    meta: { requiresAuth: true, role: 'SUPER_ADMIN' }
+    path: "/superadmin",
+    name: "SuperAdmin",
+    component: () => import("../views/SuperAdminView.vue"),
+    meta: { requiresAuth: true, role: "SUPER_ADMIN" },
   },
   {
-    path: '/admin',
-    name: 'Admin',
-    component: () => import('../views/AdminView.vue'),
-    meta: { requiresAuth: true, role: 'ADMIN' }
+    path: "/admin",
+    name: "Admin",
+    component: () => import("../views/AdminView.vue"),
+    meta: { requiresAuth: true, role: "ADMIN" },
   },
   {
-    path: '/manager',
-    name: 'Manager',
-    component: () => import('../views/ManagerView.vue'),
-    meta: { requiresAuth: true, role: 'MANAGER' }
+    path: "/manager",
+    name: "Manager",
+    component: () => import("../views/ManagerView.vue"),
+    meta: { requiresAuth: true, role: "MANAGER" },
   },
   {
-    path: '/user',
-    name: 'User',
-    component: () => import('../views/UserView.vue'),
-    meta: { requiresAuth: true, role: 'USER' }
+    path: "/user",
+    name: "User",
+    component: () => import("../views/UserView.vue"),
+    meta: { requiresAuth: true, role: "USER" },
   },
   {
-    path: '/customer',
-    name: 'Customer',
-    component: () => import('../views/CustomerView.vue'),
-    meta: { requiresAuth: true, role: 'CUSTOMER' }
+    path: "/customer",
+    name: "Customer",
+    component: () => import("../views/CustomerView.vue"),
+    meta: { requiresAuth: true, role: "CUSTOMER" },
   },
   {
-    path: '/login',
-    name: 'Login',
+    path: "/login",
+    name: "Login",
     component: Login,
-    meta: { guest: true }
+    meta: { guest: true },
   },
   {
-    path: '/manager/meal-register',
-    name: 'ManagerMealRegister',
+    path: "/manager/meal-register",
+    name: "ManagerMealRegister",
     component: ManagerMealRegister,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
   {
-    path: '/manager/meals',
-    name: 'ManagerMealsList',
+    path: "/manager/meals",
+    name: "ManagerMealsList",
     component: ManagerMealsList,
-    meta: { requiresAuth: true, role: 'MANAGER' }
-  }
-]
+    meta: { requiresAuth: true, role: "MANAGER" },
+  },
+  {
+    path: "/manager/menu-selection",
+    name: "ManagerMenuSelection",
+    component: ManagerMenuSelection,
+    meta: { requiresAuth: true, role: "MANAGER" },
+  },
+];
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
-})
+  routes,
+});
 
 router.beforeEach((to, from, next) => {
-  const authStore = useAuthStore()
-  const isAuthenticated = authStore.isAuthenticated
-  const userRole = authStore.userRole
+  const authStore = useAuthStore();
+
+  // Initialize auth from localStorage if not already done
+  if (!authStore.isAuthenticated) {
+    authStore.initializeAuth();
+  }
+
+  const isAuthenticated = authStore.isAuthenticated;
+  const userRole = authStore.userRole;
+
+  // Log authentication state for debugging
+  console.log("Router guard - Auth state:", {
+    isAuthenticated,
+    userRole,
+    route: to.path,
+  });
 
   // If route requires auth and user is not authenticated
   if (to.meta.requiresAuth && !isAuthenticated) {
-    next('/login')
-    return
+    console.log("Redirecting to login - Authentication required");
+    next("/login");
+    return;
   }
 
   // If user is authenticated and trying to access login page
   if (to.meta.guest && isAuthenticated) {
-    redirectToRoleDashboard(userRole, next)
-    return
+    console.log("Redirecting to dashboard - Already authenticated");
+    redirectToRoleDashboard(userRole, next);
+    return;
   }
 
   // If route has role requirement
-  if (to.meta.role && to.meta.role !== userRole) {
-    redirectToRoleDashboard(userRole, next)
-    return
+  if (to.meta.roleName && to.meta.roleName !== userRole) {
+    console.log("Redirecting to appropriate dashboard - Role mismatch");
+    redirectToRoleDashboard(userRole, next);
+    return;
   }
 
   // If accessing root path, redirect to role-specific dashboard
-  if (to.path === '/' && isAuthenticated) {
-    redirectToRoleDashboard(userRole, next)
-    return
+  if (to.path === "/" && isAuthenticated) {
+    redirectToRoleDashboard(userRole, next);
+    return;
   }
 
-  next()
-})
+  next();
+});
 
 function redirectToRoleDashboard(role: string | null, next: any) {
   switch (role) {
-    case 'SUPER_ADMIN':
-      next('/superadmin')
-      break
-    case 'ADMIN':
-      next('/admin')
-      break
-    case 'MANAGER':
-      next('/manager')
-      break
-    case 'USER':
-      next('/user')
-      break
-    case 'CUSTOMER':
-      next('/customer')
-      break
+    case "SUPER_ADMIN":
+      next("/superadmin");
+      break;
+    case "ADMIN":
+      next("/admin");
+      break;
+    case "MANAGER":
+      next("/manager");
+      break;
+    case "USER":
+      next("/user");
+      break;
+    case "CUSTOMER":
+      next("/customer");
+      break;
     default:
-      next('/login')
+      next("/login");
   }
 }
 
-export default router 
+export default router;

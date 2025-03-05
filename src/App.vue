@@ -8,15 +8,24 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import Navbar from './components/Navbar.vue'
-import { useThemeStore } from './stores/theme'
+import { onMounted } from "vue";
+import Navbar from "./components/Navbar.vue";
+import { useThemeStore } from "./stores/theme";
+import { useAuthStore } from "./stores/auth";
 
-const themeStore = useThemeStore()
+const themeStore = useThemeStore();
+const authStore = useAuthStore();
 
-onMounted(() => {
-  themeStore.initTheme()
-})
+onMounted(async () => {
+  themeStore.initTheme();
+
+  try {
+    await authStore.initializeAuth();
+    console.log("Authentication initialized in App.vue");
+  } catch (error) {
+    console.error("Error initializing authentication:", error);
+  }
+});
 </script>
 
 <style>
@@ -31,7 +40,7 @@ onMounted(() => {
   --border-color: #dee2e6;
   --navbar-bg: #333;
   --navbar-text: #ffffff;
-  --btn-primary: #4CAF50;
+  --btn-primary: #4caf50;
   --btn-hover: #45a049;
   --card-bg: #ffffff;
   --card-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -54,7 +63,7 @@ onMounted(() => {
   --navbar-bg: #000000;
   --navbar-text: #ffffff;
   --btn-primary: #45a049;
-  --btn-hover: #4CAF50;
+  --btn-hover: #4caf50;
   --card-bg: #2d2d2d;
   --card-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   --input-bg: #333333;

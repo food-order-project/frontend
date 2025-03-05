@@ -18,8 +18,9 @@ const vuetify = createVuetify({
 
 const app = createApp(App);
 
-app.use(router);
+// Initialize pinia before router to ensure auth store is available
 app.use(pinia);
+app.use(router);
 app.use(i18n);
 app.use(vuetify);
 
