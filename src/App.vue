@@ -8,15 +8,51 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import Navbar from './components/Navbar.vue'
-import { useThemeStore } from './stores/theme'
+import { onMounted } from "vue";
+import Navbar from "./components/Navbar.vue";
+import { useThemeStore } from "./stores/theme";
+import { useAuthStore } from "./stores/auth";
+import { authService } from "./services/auth.service";
 
-const themeStore = useThemeStore()
+const themeStore = useThemeStore();
+const authStore = useAuthStore();
 
-onMounted(() => {
-  themeStore.initTheme()
-})
+onMounted(async () => {
+  themeStore.initTheme();
+
+  // Initialize auth from localStorage
+  authStore.initializeAuth();
+
+  // If we have a token, validate it with the server
+  if (authStore.token) {
+    try {
+      const response = await authService.me(authStore.token);
+
+      // Update auth store with fresh data from server
+      // This will also update localStorage
+      authStore.setToken(response.access_token);
+      authStore.setUser(response.user);
+
+      console.log("Token validated successfully");
+    } catch (error: any) {
+      // Don't clear auth on error, just log it
+      // This way, if the server is temporarily unavailable, the user stays logged in
+      console.error("Token validation failed:", error);
+
+      // Only clear auth if the error is specifically about an invalid token
+      // This prevents clearing auth data for network errors or server issues
+      if (
+        error.message &&
+        (error.message.includes("unauthorized") ||
+          error.message.includes("invalid token") ||
+          error.message.includes("expired"))
+      ) {
+        console.log("Clearing auth due to invalid token");
+        authStore.clearAuth();
+      }
+    }
+  }
+});
 </script>
 
 <style>
@@ -31,7 +67,7 @@ onMounted(() => {
   --border-color: #dee2e6;
   --navbar-bg: #333;
   --navbar-text: #ffffff;
-  --btn-primary: #4CAF50;
+  --btn-primary: #4caf50;
   --btn-hover: #45a049;
   --card-bg: #ffffff;
   --card-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -54,7 +90,7 @@ onMounted(() => {
   --navbar-bg: #000000;
   --navbar-text: #ffffff;
   --btn-primary: #45a049;
-  --btn-hover: #4CAF50;
+  --btn-hover: #4caf50;
   --card-bg: #2d2d2d;
   --card-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   --input-bg: #333333;
